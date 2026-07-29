@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: convivencia_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword2026
+      POSTGRES_DB: convivencia_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: convivencia_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgrespassword2026@postgres:5432/convivencia_db?schema=public
+      JWT_SECRET: super_secret_jwt_key_alejandria_2026_change_in_production
+      APP_URL: http://localhost:3000
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: notificaciones@parquesdealejandria.com
+      SMTP_PASSWORD: tu_password_smtp
+      ADMIN_DEFAULT_NAME: "Administrador Convivencia"
+      ADMIN_DEFAULT_EMAIL: admin@parquesdealejandria.com
+      ADMIN_DEFAULT_PASSWORD: Admin2026!
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/backend/uploads
+
+volumes:
+  postgres_data:
+  uploads_data:

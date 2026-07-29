@@ -1,0 +1,148 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         String       @default("ADMIN") // ADMIN, COMMITTEE, READONLY
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  historyLogs  HistoryLog[]
+}
+
+model Pqr {
+  id               String        @id @default(uuid())
+  radicado         String        @unique // PPA-YYYYMMDD-XXXXXX
+  residentName     String
+  tower            String
+  apartment        String
+  email            String
+  phone            String
+  type             String        // Petición, Queja, Reclamo, Sugerencia, Convivencia, Administración
+  subject          String
+  description      String
+  status           String        @default("Nuevo") // Nuevo, En revisión, En proceso, Pendiente, Resuelto, Cerrado
+  ipAddress        String?
+  userAgent        String?
+  responseDeadline DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  attachments      Attachment[]
+  historyLogs      HistoryLog[]
+  observations     Observation[]
+
+  @@index([radicado])
+  @@index([email])
+  @@index([apartment])
+  @@index([status])
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  pqrId        String
+  pqr          Pqr      @relation(fields: [pqrId], references: [id], onDelete: Cascade)
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  filepath     String
+  createdAt    DateTime @default(now())
+}
+
+model HistoryLog {
+  id            String   @id @default(uuid())
+  pqrId         String
+  pqr          Pqr      @relation(fields: [pqrId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userRole      String?
+  userName      String?
+  action        String   // CREACION, CAMBIO_ESTADO, RESPUESTA_OFICIAL, OBSERVACION_PRIVADA, ARCHIVO_SUBIDO
+  previousState String?
+  newState      String?
+  notes         String?
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+}
+
+model Observation {
+  id         String   @id @default(uuid())
+  pqrId      String
+  pqr        Pqr      @relation(fields: [pqrId], references: [id], onDelete: Cascade)
+  authorName String
+  content    String
+  isPrivate  Boolean  @default(false) // true = solo comité, false = público
+  createdAt  DateTime @default(now())
+}
+
+model SystemSettings {
+  id                String   @id @default("default")
+  ensembleName      String   @default("Conjunto Residencial Parques de Alejandría")
+  entityName        String   @default("Comité de Convivencia")
+  contactEmail      String   @default("convivencia@parquesdealejandria.com")
+  responseDaysLimit Int      @default(15)
+  logoUrl           String?
+  primaryRed        String   @default("#D32F2F")
+  primaryGreen      String   @default("#4CAF50")
+  primaryBlue       String   @default("#0288D1")
+  primaryYellow     String   @default("#FBC02D")
+  updatedAt         DateTime @updatedAt
+}
+
+model DailySequence {
+  date String @id // Formato YYYYMMDD
+  seq  Int    @default(0)
+}
+
+// ─── Catálogo jerárquico de PQR ──────────────────────────────────────────────
+// Estructura: Tipo → Área → Categoría → Motivo
+// Los motivos se administran desde el panel sin tocar el código fuente.
+
+model PqrArea {
+  id         String        @id @default(uuid())
+  name       String
+  pqrType    String        // Petición | Queja | Reclamo | Sugerencia | Convivencia | Administración
+  active     Boolean       @default(true)
+  order      Int           @default(0)
+  categories PqrCategory[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([pqrType])
+}
+
+model PqrCategory {
+  id        String      @id @default(uuid())
+  name      String
+  areaId    String
+  area      PqrArea     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  active    Boolean     @default(true)
+  order     Int         @default(0)
+  motives   PqrMotive[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([areaId])
+}
+
+model PqrMotive {
+  id         String      @id @default(uuid())
+  name       String
+  categoryId String
+  category   PqrCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  active     Boolean     @default(true)
+  order      Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([categoryId])
+}

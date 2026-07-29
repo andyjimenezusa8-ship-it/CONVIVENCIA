@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer utilities {
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes slide-left {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+  .animate-slide-left {
+    animation: slide-left 0.4s ease-out forwards;
+  }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.btn-primary {
+  @apply bg-brand-red text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm hover:bg-red-700 transition-all duration-200 active:scale-[0.98];
+}
+
+.btn-secondary {
+  @apply bg-brand-blue text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm hover:bg-sky-700 transition-all duration-200 active:scale-[0.98];
+}
+
+.btn-outline {
+  @apply border border-slate-300 text-slate-700 font-medium px-4 py-2 rounded-lg hover:bg-slate-100 transition-all duration-200;
+}
