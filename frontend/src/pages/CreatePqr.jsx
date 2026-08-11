@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import api from '../services/api';
 import QRModal from '../components/QRModal';
 import SearchableSelect from '../components/SearchableSelect';
+import { DEFAULT_CATALOG } from '../data/defaultCatalog';
 import { 
   PaperClipIcon, 
   XMarkIcon, 
@@ -37,7 +38,7 @@ export default function CreatePqr() {
     description: '',
   });
 
-  const [catalog, setCatalog] = useState(null);
+  const [catalog, setCatalog] = useState(DEFAULT_CATALOG);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -47,7 +48,7 @@ export default function CreatePqr() {
     api.get('/pqr/catalog')
       .then(res => {
         const typesData = res.data?.data?.types || res.data?.types;
-        if (typesData) {
+        if (typesData && Object.keys(typesData).length > 0) {
           setCatalog(typesData);
         }
       })
@@ -144,7 +145,8 @@ export default function CreatePqr() {
   };
 
   // Helper arrays para cascading
-  const currentAreas = catalog && catalog[formData.type] ? catalog[formData.type].areas || [] : [];
+  const activeCatalog = (catalog && catalog[formData.type]?.areas?.length) ? catalog : DEFAULT_CATALOG;
+  const currentAreas = activeCatalog[formData.type]?.areas || DEFAULT_CATALOG[formData.type]?.areas || [];
   const selectedAreaObj = currentAreas.find(a => a.name === formData.area);
   const currentCategories = selectedAreaObj ? selectedAreaObj.categories || [] : [];
   const selectedCategoryObj = currentCategories.find(c => c.name === formData.category);

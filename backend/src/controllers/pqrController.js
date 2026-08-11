@@ -328,6 +328,160 @@ async function getCatalog(req, res, next) {
       });
     });
 
+    // Fallback si la base de datos no tiene catálogo registrado aún
+    if (Object.keys(types).length === 0) {
+      const defaultCatalog = {
+        Petición: {
+          areas: [
+            {
+              id: 'def-1',
+              name: 'Información y Trámites',
+              categories: [
+                {
+                  id: 'def-cat-1',
+                  name: 'Información General',
+                  motives: [
+                    { id: 'm1', name: 'Solicitud de información general' },
+                    { id: 'm2', name: 'Solicitud de manual de convivencia' },
+                    { id: 'm3', name: 'Certificado de residencia / Paz y salvo' },
+                    { id: 'm4', name: 'Otro' },
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        Queja: {
+          areas: [
+            {
+              id: 'def-2',
+              name: 'Administración y Servicios',
+              categories: [
+                {
+                  id: 'def-cat-2',
+                  name: 'Atención al Residente',
+                  motives: [
+                    { id: 'm5', name: 'Demora en respuesta a solicitudes' },
+                    { id: 'm6', name: 'Atención en portería o vigilancia' },
+                    { id: 'm7', name: 'Inconformidad con aseo o zonas comunes' },
+                    { id: 'm8', name: 'Otro' },
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        Reclamo: {
+          areas: [
+            {
+              id: 'def-3',
+              name: 'Facturación y Mantenimiento',
+              categories: [
+                {
+                  id: 'def-cat-3',
+                  name: 'Cuentas y Reparaciones',
+                  motives: [
+                    { id: 'm9', name: 'Inconsistencia o error en factura de administración' },
+                    { id: 'm10', name: 'Daño en zona común sin solucionar' },
+                    { id: 'm11', name: 'Otro' },
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        Sugerencia: {
+          areas: [
+            {
+              id: 'def-4',
+              name: 'Mejoras de la Copropiedad',
+              categories: [
+                {
+                  id: 'def-cat-4',
+                  name: 'Propuestas de Mejora',
+                  motives: [
+                    { id: 'm12', name: 'Propuesta para seguridad o iluminación' },
+                    { id: 'm13', name: 'Propuesta para zonas verdes / parque infantil' },
+                    { id: 'm14', name: 'Otro' },
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        Convivencia: {
+          areas: [
+            {
+              id: 'def-5',
+              name: 'Ruido y Perturbación',
+              categories: [
+                {
+                  id: 'def-cat-5',
+                  name: 'Convivencia Ciudadana',
+                  motives: [
+                    { id: 'm15', name: 'Música o ruidos a alto volumen en horario nocturno' },
+                    { id: 'm16', name: 'Obras ruidosas fuera de horario' },
+                    { id: 'm17', name: 'Otro' },
+                  ]
+                }
+              ]
+            },
+            {
+              id: 'def-6',
+              name: 'Mascotas',
+              categories: [
+                {
+                  id: 'def-cat-6',
+                  name: 'Tenencia de Mascotas',
+                  motives: [
+                    { id: 'm18', name: 'No recolección de excrementos' },
+                    { id: 'm19', name: 'Mascota suelta sin correa' },
+                    { id: 'm20', name: 'Ladridos continuos' },
+                    { id: 'm21', name: 'Otro' },
+                  ]
+                }
+              ]
+            },
+            {
+              id: 'def-7',
+              name: 'Parqueaderos',
+              categories: [
+                {
+                  id: 'def-cat-7',
+                  name: 'Uso de Parqueaderos',
+                  motives: [
+                    { id: 'm22', name: 'Parqueo en celda ajena' },
+                    { id: 'm23', name: 'Bloqueo de vías de circulación' },
+                    { id: 'm24', name: 'Otro' },
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        Administración: {
+          areas: [
+            {
+              id: 'def-8',
+              name: 'Zonas Comunes',
+              categories: [
+                {
+                  id: 'def-cat-8',
+                  name: 'Gestión de Áreas Comunes',
+                  motives: [
+                    { id: 'm25', name: 'Reserva de salón social / BBQ' },
+                    { id: 'm26', name: 'Permisos de mudanza' },
+                    { id: 'm27', name: 'Otro' },
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      };
+      return res.json({ success: true, data: { types: defaultCatalog } });
+    }
+
     res.json({ success: true, data: { types } });
   } catch (error) {
     next(error);
