@@ -57,8 +57,27 @@ if (fs.existsSync(frontendDist)) {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
       res.sendFile(path.join(frontendDist, 'index.html'));
     }
-  });
+// Auto-inicialización de la base de datos SQLite autónoma
+const { execSync } = require('child_process');
+
+function ensureDatabaseReady() {
+  if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
+    process.env.DATABASE_URL = 'file:./dev.db';
+  }
+  try {
+    const backendDir = path.join(__dirname, '..');
+    console.log('🔄 Verificando e inicializando base de datos SQLite autónoma...');
+    execSync('npx prisma db push --accept-data-loss', { cwd: backendDir, stdio: 'inherit' });
+    console.log('🌱 Poblando datos por defecto si es necesario...');
+    execSync('node prisma/seed.js', { cwd: backendDir, stdio: 'inherit' });
+    console.log('✅ Base de datos lista.');
+  } catch (err) {
+    console.warn('⚠️ Nota sobre inicialización de BD:', err.message);
+  }
 }
+
+// Ejecutar sincronización inicial
+ensureDatabaseReady();
 
 // Middleware de manejo de errores
 app.use(errorHandler);
