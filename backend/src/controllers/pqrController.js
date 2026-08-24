@@ -1,12 +1,10 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 const path = require('path');
 const fs = require('fs');
 const { generateRadicado } = require('../services/radicadoService');
 const { generatePqrPdf } = require('../services/pdfService');
 const { sendPqrCreatedNotification } = require('../services/emailService');
 const { createAuditLog } = require('../services/auditService');
-
-const prisma = new PrismaClient();
 
 /**
  * Crear nueva PQR (Público)

@@ -1,10 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prisma');
 const bcrypt = require('bcryptjs');
 const ExcelJS = require('exceljs');
 const { createAuditLog } = require('../services/auditService');
 const { sendPqrStatusUpdatedNotification } = require('../services/emailService');
-
-const prisma = new PrismaClient();
 
 /**
  * Estadísticas e indicadores para el Dashboard
