@@ -3,8 +3,30 @@ const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
+const fs = require('fs');
+const { execSync } = require('child_process');
 
 dotenv.config();
+
+// Auto-inicialización de la base de datos SQLite autónoma
+function ensureDatabaseReady() {
+  if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
+    process.env.DATABASE_URL = 'file:./dev.db';
+  }
+  try {
+    const backendDir = path.join(__dirname, '..');
+    console.log('🔄 Verificando e inicializando base de datos SQLite autónoma...');
+    execSync('npx prisma db push --accept-data-loss', { cwd: backendDir, stdio: 'inherit' });
+    console.log('🌱 Poblando datos por defecto si es necesario...');
+    execSync('node prisma/seed.js', { cwd: backendDir, stdio: 'inherit' });
+    console.log('✅ Base de datos lista.');
+  } catch (err) {
+    console.warn('⚠️ Nota sobre inicialización de BD:', err.message);
+  }
+}
+
+// Ejecutar sincronización inicial de la BD antes de cargar las rutas
+ensureDatabaseReady();
 
 const authRoutes = require('./routes/authRoutes');
 const pqrRoutes = require('./routes/pqrRoutes');
@@ -18,7 +40,7 @@ const PORT = process.env.PORT || 3000;
 // Configuración de Seguridad con Helmet
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Permitir carga de recursos frontend en produccion
+    contentSecurityPolicy: false, // Permitir carga de recursos frontend en producción
   })
 );
 
@@ -50,34 +72,14 @@ app.use('/api/settings', settingsRoutes);
 
 // Servir Frontend compilado en Producción si existe
 const frontendDist = path.join(__dirname, '../../frontend/dist');
-const fs = require('fs');
 if (fs.existsSync(frontendDist)) {
   app.use(express.static(frontendDist));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
       res.sendFile(path.join(frontendDist, 'index.html'));
     }
-// Auto-inicialización de la base de datos SQLite autónoma
-const { execSync } = require('child_process');
-
-function ensureDatabaseReady() {
-  if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
-    process.env.DATABASE_URL = 'file:./dev.db';
-  }
-  try {
-    const backendDir = path.join(__dirname, '..');
-    console.log('🔄 Verificando e inicializando base de datos SQLite autónoma...');
-    execSync('npx prisma db push --accept-data-loss', { cwd: backendDir, stdio: 'inherit' });
-    console.log('🌱 Poblando datos por defecto si es necesario...');
-    execSync('node prisma/seed.js', { cwd: backendDir, stdio: 'inherit' });
-    console.log('✅ Base de datos lista.');
-  } catch (err) {
-    console.warn('⚠️ Nota sobre inicialización de BD:', err.message);
-  }
+  });
 }
-
-// Ejecutar sincronización inicial
-ensureDatabaseReady();
 
 // Middleware de manejo de errores
 app.use(errorHandler);
