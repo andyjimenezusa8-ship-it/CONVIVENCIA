@@ -84,9 +84,9 @@ if (fs.existsSync(frontendDist)) {
 // Middleware de manejo de errores
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
-  console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
+  console.log(`🚀 Servidor ejecutándose en 0.0.0.0:${PORT}`);
   console.log(`🏢 Comité de Convivencia - Parques de Alejandría`);
   console.log(`====================================================`);
 });
