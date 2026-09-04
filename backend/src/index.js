@@ -71,14 +71,26 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/settings', settingsRoutes);
 
 // Servir Frontend compilado en Producción si existe
-const frontendDist = path.join(__dirname, '../../frontend/dist');
-if (fs.existsSync(frontendDist)) {
+const possibleFrontendPaths = [
+  path.join(__dirname, '../../frontend/dist'),
+  path.join(__dirname, '../frontend/dist'),
+  path.join(__dirname, '../../../frontend/dist'),
+  path.join(process.cwd(), 'frontend/dist'),
+  path.join(process.cwd(), '../frontend/dist')
+];
+
+const frontendDist = possibleFrontendPaths.find((p) => fs.existsSync(p));
+
+if (frontendDist) {
+  console.log(`📦 Sirviendo archivos estáticos del frontend desde: ${frontendDist}`);
   app.use(express.static(frontendDist));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
       res.sendFile(path.join(frontendDist, 'index.html'));
     }
   });
+} else {
+  console.warn('⚠️ No se encontró la carpeta compilada del frontend (frontend/dist).');
 }
 
 // Middleware de manejo de errores
