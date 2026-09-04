@@ -8,25 +8,10 @@ const { execSync } = require('child_process');
 
 dotenv.config();
 
-// Auto-inicialización de la base de datos SQLite autónoma
-function ensureDatabaseReady() {
-  if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
-    process.env.DATABASE_URL = 'file:./dev.db';
-  }
-  try {
-    const backendDir = path.join(__dirname, '..');
-    console.log('🔄 Verificando e inicializando base de datos SQLite autónoma...');
-    execSync('npx prisma db push --accept-data-loss', { cwd: backendDir, stdio: 'inherit' });
-    console.log('🌱 Poblando datos por defecto si es necesario...');
-    execSync('node prisma/seed.js', { cwd: backendDir, stdio: 'inherit' });
-    console.log('✅ Base de datos lista.');
-  } catch (err) {
-    console.warn('⚠️ Nota sobre inicialización de BD:', err.message);
-  }
+// Configurar URL de base de datos por defecto si no existe
+if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
+  process.env.DATABASE_URL = 'file:./dev.db';
 }
-
-// Ejecutar sincronización inicial de la BD antes de cargar las rutas
-ensureDatabaseReady();
 
 const authRoutes = require('./routes/authRoutes');
 const pqrRoutes = require('./routes/pqrRoutes');
@@ -55,7 +40,7 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 const uploadsDir = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsDir));
 
-// Endpoint de Salud para Railway / Docker / Monitoreo
+// Endpoint de Salud para Railway / Docker / Monitoreo (Responde INMEDIATAMENTE 200 OK)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'UP',
@@ -96,9 +81,24 @@ if (frontendDist) {
 // Middleware de manejo de errores
 app.use(errorHandler);
 
+// Iniciar servidor HTTP en 0.0.0.0 de forma inmediata para que Railway apruebe el healthcheck
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
   console.log(`🚀 Servidor ejecutándose en 0.0.0.0:${PORT}`);
   console.log(`🏢 Comité de Convivencia - Parques de Alejandría`);
   console.log(`====================================================`);
+
+  // Inicializar/sincronizar base de datos SQLite en segundo plano sin bloquear el arranque
+  setTimeout(() => {
+    try {
+      const backendDir = path.join(__dirname, '..');
+      console.log('🔄 Sincronizando base de datos SQLite autónoma...');
+      execSync('npx prisma db push --accept-data-loss', { cwd: backendDir, stdio: 'inherit' });
+      console.log('🌱 Poblando datos por defecto si es necesario...');
+      execSync('node prisma/seed.js', { cwd: backendDir, stdio: 'inherit' });
+      console.log('✅ Base de datos SQLite inicializada exitosamente.');
+    } catch (err) {
+      console.warn('⚠️ Nota sobre inicialización de BD en segundo plano:', err.message);
+    }
+  }, 100);
 });

@@ -41,5 +41,5 @@ ENV PORT=3000
 ENV NODE_ENV=production
 ENV DATABASE_URL="file:./dev.db"
 
-# Script de arranque en producción (Migraciones + Seed + Start)
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node prisma/seed.js && node src/index.js"]
+# Script de arranque en producción
+CMD ["node", "src/index.js"]
